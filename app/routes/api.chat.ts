@@ -1,4 +1,5 @@
-import { type ActionFunctionArgs } from '@remix-run/node';
+import { createReadableStreamFromReadable, type ActionFunctionArgs } from '@remix-run/node';
+
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
 import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
 import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
@@ -52,11 +53,14 @@ async function chatAction({ request }: ActionFunctionArgs) {
   } catch (error: any) {
     console.error('Error in chatAction:', error);
 
-    throw new Response(error?.message || null, {
+    return new Response(JSON.stringify({ error: error?.message, stack: error?.stack }), {
       status: 500,
-      statusText: 'Internal Server Error',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   }
 }
+
 
 

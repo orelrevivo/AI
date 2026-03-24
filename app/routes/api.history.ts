@@ -128,8 +128,9 @@ export async function action(args: ActionFunctionArgs) {
     return json({ error: 'Method not allowed' }, { status: 405 });
   } catch (error: any) {
     console.error('API History Error:', error);
-    return json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return json({ error: error.message || 'Internal Server Error', stack: error.stack }, { status: 500 });
   }
 }
+
 
 
