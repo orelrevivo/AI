@@ -14,15 +14,17 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "npm run lint -- --fix",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc",
-    "preview": "pnpm run build && pnpm run start"
+    "typecheck": "tsc"
   },
+
   "engines": {
     "node": ">=18.18.0"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.39",
     "@clerk/remix": "^4.13.43",
+    "@vercel/remix": "^2.10.2",
+
     "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/commands": "^6.6.0",
     "@codemirror/lang-cpp": "^6.0.2",

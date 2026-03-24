@@ -21,6 +21,7 @@ export default defineConfig((config) => {
           v3_throwAbortReason: true,
         },
       }),
+
       UnoCSS(),
       tsconfigPaths(),
       chrome129IssuePlugin(),
