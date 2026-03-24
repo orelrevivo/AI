@@ -48,9 +48,10 @@ export async function loader(args: LoaderFunctionArgs) {
     return json({ chats: userChats });
   } catch (error: any) {
     console.error('API History Loader Error:', error);
-    return json({ error: 'Internal Server Error' }, { status: 500 });
+    return json({ error: error.message || 'Internal Server Error', stack: error.stack }, { status: 500 });
   }
 }
+
 
 
 export async function action(args: ActionFunctionArgs) {

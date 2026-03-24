@@ -11,7 +11,13 @@ async function chatAction({ request }: ActionFunctionArgs) {
   try {
     const result = await streamText(messages, process.env as any);
 
-    return result.toDataStreamResponse();
+    return new Response(result.toAIStream(), {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Vercel-AI-Stream': 'true',
+      },
+    });
+
   } catch (error: any) {
     console.error('Error in chatAction:', error);
 

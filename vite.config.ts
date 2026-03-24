@@ -30,8 +30,12 @@ export default defineConfig((config) => {
       chrome129IssuePlugin(),
       config.mode === 'production' && optimizeCssModules({ apply: 'build' }),
     ],
+    ssr: {
+      noExternal: ['web-streams-polyfill'],
+    },
   };
 });
+
 
 
 function chrome129IssuePlugin() {
