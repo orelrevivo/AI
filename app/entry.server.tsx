@@ -8,7 +8,10 @@ import { themeStore } from '~/lib/stores/theme';
 import { PassThrough } from 'node:stream';
 import { createReadableStreamFromReadable } from '@remix-run/node';
 
+export const config = { runtime: 'nodejs' };
+
 export default function handleRequest(
+
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,

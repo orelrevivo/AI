@@ -12,7 +12,10 @@ import { ClerkApp } from "@clerk/remix";
 import { db } from './lib/.server/db';
 import { users } from './lib/.server/db/schema';
 
+export const config = { runtime: 'nodejs' };
+
 import reactToastifyStyles from 'react-toastify/dist/ReactToastify.css?url';
+
 import globalStyles from './styles/index.scss?url';
 import xtermStyles from '@xterm/xterm/css/xterm.css?url';
 

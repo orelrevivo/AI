@@ -23,7 +23,7 @@ export type StreamingOptions = Omit<Parameters<typeof _streamText>[0], 'model'>;
 
 import { env } from 'node:process';
 
-export function streamText(messages: Messages, envVars: Env, options?: StreamingOptions) {
+export function streamText(messages: Messages, envVars: any, options?: StreamingOptions) {
   const apiKey = getAPIKey(envVars);
   
   if (!apiKey) {

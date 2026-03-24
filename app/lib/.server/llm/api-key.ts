@@ -1,11 +1,14 @@
-import { env } from 'node:process';
+import { env as nodeProcessEnv } from 'node:process';
 
-export function getAPIKey(cloudflareEnv: Env) {
-  /**
-   * The `cloudflareEnv` is only used when deployed or when previewing locally.
-   * In development the environment variables are available through `env`.
-   */
-  return env.ZAI_API_KEY || cloudflareEnv.ZAI_API_KEY
+export function getAPIKey(envVars: any) {
+  return (
+    nodeProcessEnv.ZAI_API_KEY ||
+    envVars.ZAI_API_KEY ||
+    nodeProcessEnv.ZAIGLM_API_KEY ||
+    envVars.ZAIGLM_API_KEY ||
+    nodeProcessEnv.GLM_API_KEY ||
+    envVars.GLM_API_KEY ||
+    nodeProcessEnv.ANTHROPIC_API_KEY ||
+    envVars.ANTHROPIC_API_KEY
+  );
 }
-
-
