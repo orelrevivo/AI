@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
+import crypto from 'node:crypto';
 
 let dbInstance: any = null;
 
@@ -9,14 +10,10 @@ export const getDb = () => {
     return dbInstance;
   }
 
-  const databaseUrl =
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.NEON_DATABASE_URL ||
-    process.env.NEON_NEON_DATABASE_URL;
+  const databaseUrl = process.env.NEON_NEON_DATABASE_URL;
 
   if (!databaseUrl) {
-    console.error('CRITICAL: DATABASE_URL is missing! Returning dummy proxy to prevent 500 crash.');
+    console.error('CRITICAL: NEON_NEON_DATABASE_URL is missing! Returning dummy proxy to prevent 500 crash.');
 
     const createRecursiveProxy = (name: string): any => {
       const proxy: any = new Proxy(() => {}, {
@@ -25,7 +22,7 @@ export const getDb = () => {
           return createRecursiveProxy(`${name}.${String(prop)}`);
         },
         apply: (_target, _thisArg, _args) => {
-          console.warn(`Database call ignored: ${name}() because DATABASE_URL is missing.`);
+          console.warn(`Database call ignored: ${name}() because NEON_NEON_DATABASE_URL is missing.`);
           
           if (name.endsWith('findMany') || name.endsWith('where') || name.endsWith('orderBy')) {
              return Promise.resolve([]);
@@ -34,7 +31,7 @@ export const getDb = () => {
              return Promise.resolve(null);
           }
           if (name.endsWith('returning')) {
-             return Promise.resolve([{ id: '00000000-0000-0000-0000-000000000000' }]);
+             return Promise.resolve([{ id: crypto.randomUUID() }]);
           }
 
           return {
@@ -42,7 +39,7 @@ export const getDb = () => {
             set: () => createRecursiveProxy(`${name}.set`),
             where: () => createRecursiveProxy(`${name}.where`),
             orderBy: () => createRecursiveProxy(`${name}.orderBy`),
-            returning: () => Promise.resolve([{ id: '00000000-0000-0000-0000-000000000000' }]),
+            returning: () => Promise.resolve([{ id: crypto.randomUUID() }]),
             onConflictDoNothing: () => Promise.resolve({ rows: [] }),
             onConflictDoUpdate: () => Promise.resolve({ rows: [] }),
             execute: () => Promise.resolve({ rows: [] }),
@@ -66,6 +63,6 @@ export const getDb = () => {
 export const db = new Proxy({} as any, {
   get(_, prop) {
     const instance = getDb();
-    return instance[prop];
+    return (instance as any)[prop];
   },
 });
