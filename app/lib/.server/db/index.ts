@@ -1,16 +1,16 @@
 import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import crypto from 'node:crypto';
 
-let dbInstance: any = null;
+let dbInstance: NeonHttpDatabase<typeof schema> | null = null;
 
-export const getDb = () => {
+export const getDb = (): NeonHttpDatabase<typeof schema> => {
   if (dbInstance) {
     return dbInstance;
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.NEON_NEON_DATABASE_URL || process.env.DATABASE_URL;
 
   if (!databaseUrl) {
     console.error('CRITICAL: NEON_NEON_DATABASE_URL is missing! Returning dummy proxy to prevent 500 crash.');
@@ -65,4 +65,4 @@ export const db = new Proxy({} as any, {
     const instance = getDb();
     return (instance as any)[prop];
   },
-});
+}) as NeonHttpDatabase<typeof schema>;

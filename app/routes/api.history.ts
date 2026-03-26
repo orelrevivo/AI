@@ -2,7 +2,7 @@ import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-r
 import { getAuth } from '@clerk/remix/ssr.server';
 import { db } from '~/lib/.server/db';
 import { chats, messages as dbMessages, users } from '~/lib/.server/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -42,7 +42,7 @@ export async function loader(args: LoaderFunctionArgs) {
     // Fetch all user chats (for sidebar)
     const userChats = await db.query.chats.findMany({
       where: eq(chats.userId, userId),
-      orderBy: (chats, { desc }) => [desc(chats.createdAt)],
+      orderBy: [desc(chats.createdAt)],
     });
 
     return json({ chats: userChats });
