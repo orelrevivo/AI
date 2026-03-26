@@ -34,7 +34,7 @@ export const getDb = () => {
              return Promise.resolve(null);
           }
           if (name.endsWith('returning')) {
-             return Promise.resolve([{ id: 'dummy-id' }]);
+             return Promise.resolve([{ id: '00000000-0000-0000-0000-000000000000' }]);
           }
 
           return {
@@ -42,7 +42,7 @@ export const getDb = () => {
             set: () => createRecursiveProxy(`${name}.set`),
             where: () => createRecursiveProxy(`${name}.where`),
             orderBy: () => createRecursiveProxy(`${name}.orderBy`),
-            returning: () => Promise.resolve([{ id: 'dummy-id' }]),
+            returning: () => Promise.resolve([{ id: '00000000-0000-0000-0000-000000000000' }]),
             onConflictDoNothing: () => Promise.resolve({ rows: [] }),
             onConflictDoUpdate: () => Promise.resolve({ rows: [] }),
             execute: () => Promise.resolve({ rows: [] }),

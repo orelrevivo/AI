@@ -88,56 +88,51 @@ export function getModel(provider: string, model: string, apiKey: string) {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        const transformStream = new TransformStream({
-          transform(chunk, controller) {
-            buffer += decoder.decode(chunk, { stream: true });
-            
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // keep incomplete line in buffer
+        const sourceStream = response.body!;
+        const reader = sourceStream.getReader();
 
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (trimmedLine.startsWith('data: ')) {
-                const dataStr = trimmedLine.slice(6);
-                if (dataStr === '[DONE]') {
-                  return;
+        const transformedStream = new ReadableStream({
+          async start(controller) {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) {
+                  controller.close();
+                  break;
                 }
-                try {
-                  const data = JSON.parse(dataStr);
-                  const content = data.choices?.[0]?.delta?.content;
-                  if (content) {
-                    controller.enqueue({
-                      type: 'text-delta',
-                      textDelta: content,
-                    });
+
+                buffer += decoder.decode(value, { stream: true });
+                
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmedLine = line.trim();
+                  if (trimmedLine.startsWith('data: ')) {
+                    const dataStr = trimmedLine.slice(6);
+                    if (dataStr === '[DONE]') continue;
+                    try {
+                      const data = JSON.parse(dataStr);
+                      const content = data.choices?.[0]?.delta?.content;
+                      if (content) {
+                        controller.enqueue({
+                          type: 'text-delta',
+                          textDelta: content,
+                        });
+                      }
+                    } catch (e) {}
                   }
-                } catch (e) {
-                  // ignore
                 }
               }
-            }
-          },
-          flush(controller) {
-            if (buffer.trim().startsWith('data: ')) {
-              const dataStr = buffer.trim().slice(6);
-              if (dataStr !== '[DONE]') {
-                try {
-                  const data = JSON.parse(dataStr);
-                  const content = data.choices?.[0]?.delta?.content;
-                  if (content) {
-                    controller.enqueue({
-                      type: 'text-delta',
-                      textDelta: content,
-                    });
-                  }
-                } catch (e) {}
-              }
+            } catch (error) {
+              controller.error(error);
             }
           }
         });
 
         return {
-          stream: response.body!.pipeThrough(transformStream),
+          stream: transformedStream,
           rawCall: { rawPrompt: null, rawSettings: {} },
         };
       },
