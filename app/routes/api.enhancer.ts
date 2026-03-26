@@ -33,21 +33,35 @@ async function enhancerAction({ request }: ActionFunctionArgs) {
       process.env as any,
     );
 
-    const transformStream = new TransformStream({
-      transform(chunk, controller) {
-        const processedChunk = decoder
-          .decode(chunk)
-          .split('\n')
-          .filter((line) => line !== '')
-          .map(parseStreamPart)
-          .map((part) => part.value)
-          .join('');
+    const sourceStream = result.toAIStream();
+    const reader = sourceStream.getReader();
 
-        controller.enqueue(encoder.encode(processedChunk));
+    const transformedStream = new ReadableStream({
+      async start(controller) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              controller.close();
+              break;
+            }
+
+            const processedChunk = decoder
+              .decode(value)
+              .split('\n')
+              .filter((line) => line !== '')
+              .map(parseStreamPart)
+              .map((part) => (part as any).value || '')
+              .join('');
+
+            controller.enqueue(encoder.encode(processedChunk));
+          }
+        } catch (error) {
+          controller.error(error);
+        }
       },
     });
-
-    const transformedStream = result.toAIStream().pipeThrough(transformStream);
 
     return new StreamingTextResponse(transformedStream);
   } catch (error) {

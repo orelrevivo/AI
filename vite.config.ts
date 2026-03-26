@@ -31,7 +31,7 @@ export default defineConfig((config) => {
       config.mode === 'production' && optimizeCssModules({ apply: 'build' }),
     ],
     ssr: {
-      noExternal: ['web-streams-polyfill'],
+      noExternal: [],
     },
   };
 });

@@ -18,15 +18,42 @@ export const getDb = () => {
   if (!databaseUrl) {
     console.error('CRITICAL: DATABASE_URL is missing! Returning dummy proxy to prevent 500 crash.');
 
-    // Return a dummy object that doesn't throw on property access
-    return new Proxy({} as any, {
-      get: () => () => ({
-        values: () => ({ onConflictDoNothing: () => Promise.resolve() }),
-        where: () => ({ orderBy: () => Promise.resolve([]) }),
-        findFirst: () => Promise.resolve(null),
-        findMany: () => Promise.resolve([]),
-      }),
-    });
+    const createRecursiveProxy = (name: string): any => {
+      const proxy: any = new Proxy(() => {}, {
+        get: (_target, prop) => {
+          if (prop === 'then') return undefined;
+          return createRecursiveProxy(`${name}.${String(prop)}`);
+        },
+        apply: (_target, _thisArg, _args) => {
+          console.warn(`Database call ignored: ${name}() because DATABASE_URL is missing.`);
+          
+          if (name.endsWith('findMany') || name.endsWith('where') || name.endsWith('orderBy')) {
+             return Promise.resolve([]);
+          }
+          if (name.endsWith('findFirst')) {
+             return Promise.resolve(null);
+          }
+          if (name.endsWith('returning')) {
+             return Promise.resolve([{ id: 'dummy-id' }]);
+          }
+
+          return {
+            values: () => createRecursiveProxy(`${name}.values`),
+            set: () => createRecursiveProxy(`${name}.set`),
+            where: () => createRecursiveProxy(`${name}.where`),
+            orderBy: () => createRecursiveProxy(`${name}.orderBy`),
+            returning: () => Promise.resolve([{ id: 'dummy-id' }]),
+            onConflictDoNothing: () => Promise.resolve({ rows: [] }),
+            onConflictDoUpdate: () => Promise.resolve({ rows: [] }),
+            execute: () => Promise.resolve({ rows: [] }),
+            then: (resolve: any) => resolve([]),
+          };
+        },
+      });
+      return proxy;
+    };
+
+    return createRecursiveProxy('db');
   }
 
   const sql = neon(databaseUrl);
